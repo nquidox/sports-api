@@ -7,11 +7,3 @@ class UserModel(BaseModel):
     last_name: str | None = None
     birthday: float | None = None
     gender: str | None = None
-    disabled: bool = False
-    hashed_password: str
-
-
-# TODO: move sessions to separate table
-# class UserSessions(BaseModel):
-#     hashed_password: str
-

@@ -22,12 +22,7 @@ def db_worker(op: str, sql: str, values: tuple = None):
             return row
 
         case 'fa':
-            if values is not None:
-                cursor.execute(sql, values)
-
-            elif values is None:
-                cursor.execute(sql)
-
+            cursor.execute(sql, values)
             rows = cursor.fetchall()
             cursor.close()
             return rows
@@ -48,15 +43,5 @@ def init_db():
             "last_name" TEXT,
             "birthday" REAL,
             "gender" TEXT,
-            "disabled" INTEGER,
-            "hashed_password" TEXT,
             PRIMARY KEY ("id" AUTOINCREMENT)
             )''')
-
-        # TODO: for future implementation
-        # db_worker('init', '''CREATE TABLE IF NOT EXISTS users_sessions(
-        #     "id" INTEGER,
-        #     "user_id" INTEGER,
-        #     "hashed_password" TEXT,
-        #     PRIMARY KEY ("id" AUTOINCREMENT)
-        # )''')
