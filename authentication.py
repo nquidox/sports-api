@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from models import UserModel
 from db_worker import db_worker
 
-MINUTES = 2
+MINUTES = 20
 SECRET_KEY = '229f99f5f9187b139cfba8bc80cc1bf107d51684eb8bd17571b939b4b465007a'
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = MINUTES
@@ -109,5 +109,6 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_active_user(current_user: Annotated[UserModel, Depends(get_current_user)]):
-    if current_user.disabled:
+    if current_user['disabled'] != 0:
         raise HTTPException(status_code=400, detail='Inactive User')
+    return current_user

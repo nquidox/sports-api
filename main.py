@@ -81,8 +81,16 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={'sub': user.username}, expires_delta=access_token_expires
+        data={'sub': user['username']}, expires_delta=access_token_expires
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
+@app.get('/users/me/', response_model=UserModel)
+async def read_users_me(current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+    return current_user
+
+
+@app.get("/users/me/details")
+async def read_own_items(current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+    return [{'username': current_user['username'], 'first name': current_user['first_name'], 'last name': current_user['last_name'],}]
