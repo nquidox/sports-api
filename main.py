@@ -25,8 +25,9 @@ async def get_root(request: Request):
 @app.post('/users/')
 async def create_user(user: UserModel):
     try:
-        sql = "INSERT INTO users (username, first_name, last_name, birthday, gender, disabled) VALUES (?, ?, ?, ?, ?, ?)"
-        values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.disabled)
+        hashed_password = get_password_hash(user.hashed_password)
+        sql = "INSERT INTO users (username, first_name, last_name, birthday, gender, disabled, hashed_password) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.disabled, hashed_password)
         db_worker('ins', sql, values)
         return user
 
