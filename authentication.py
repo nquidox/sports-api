@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from models import UserModel
 from db_worker import db_worker
 
-MINUTES = 20
+MINUTES = 60
 SECRET_KEY = '229f99f5f9187b139cfba8bc80cc1bf107d51684eb8bd17571b939b4b465007a'
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = MINUTES
@@ -50,7 +50,8 @@ def get_user(username):
             'birthday': from_db[4],
             'gender': from_db[5],
             'disabled': from_db[6],
-            'hashed_password': from_db[7]}
+            'hashed_password': from_db[7],
+            'is_superuser': from_db[8]}
         return user
 
 

@@ -50,6 +50,7 @@ def init_db():
             "gender" TEXT,
             "disabled" INTEGER,
             "hashed_password" TEXT,
+            "is_superuser" INTEGER,
             PRIMARY KEY ("id" AUTOINCREMENT)
             )''')
 

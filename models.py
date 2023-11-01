@@ -9,6 +9,7 @@ class UserModel(BaseModel):
     gender: str | None = None
     disabled: bool = False
     hashed_password: str
+    is_superuser: bool = False
 
 
 # TODO: move sessions to separate table
