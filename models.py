@@ -12,7 +12,14 @@ class UserModel(BaseModel):
     is_superuser: bool = False
 
 
-# TODO: move sessions to separate table
-# class UserSessions(BaseModel):
-#     hashed_password: str
+class ActivityModel(BaseModel):
+    title: str
+    description: str | None = None
+    activity_type: str
+    date: float
+    time_start: float
+    time_end: float
+    published: bool = True
+    visibility: int
+
 

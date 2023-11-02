@@ -54,10 +54,15 @@ def init_db():
             PRIMARY KEY ("id" AUTOINCREMENT)
             )''')
 
-        # TODO: for future implementation
-        # db_worker('init', '''CREATE TABLE IF NOT EXISTS users_sessions(
-        #     "id" INTEGER,
-        #     "user_id" INTEGER,
-        #     "hashed_password" TEXT,
-        #     PRIMARY KEY ("id" AUTOINCREMENT)
-        # )''')
+        db_worker('init', '''CREATE TABLE IF NOT EXISTS activities(
+            "id" INTEGER,
+            "title" TEXT,
+            "description" TEXT,
+            "activity_type" TEXT,
+            "date" REAL,
+            "time_start" REAL,
+            "time_end" REAL,
+            "published" INTEGER,
+            "visibility" INTEGER,
+            PRIMARY KEY ("id" AUTOINCREMENT)
+        )''')
