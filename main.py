@@ -2,9 +2,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from models import UserModel
 from db_worker import db_worker, init_db
 from authentication import *
+from models import ActivityModel
 
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
@@ -75,9 +75,6 @@ async def delete_user(user_id: int, current_user: Annotated[UserModel, Depends(g
 @app.put('/users/{user_id}')
 async def update_user(user_id: int, user: UserModel,
                       current_user: Annotated[UserModel, Depends(get_current_active_user)]):
-    print(f'{user_id=}'
-          f'{user=}'
-          f'{current_user=}')
     try:
         if user_id == current_user['id'] or current_user['is_superuser'] == 1:
             values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.is_superuser,
@@ -115,12 +112,17 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     return {'access_token': access_token, 'token_type': 'bearer'}
 
 
-@app.get('/users/me/', response_model=UserModel)
-async def read_users_me(current_user: Annotated[UserModel, Depends(get_current_active_user)]):
-    return current_user
+@app.post('/add_activity/')
+async def add_activity_run(current_user: Annotated[UserModel, Depends(get_current_active_user)],
+                           act: ActivityModel):
+    try:
+        sql = ("INSERT INTO activities ("
+               "user_id, title, description, activity_type, laps, distance, date, time_start,"
+               "time_end, published, visibility) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        values = (current_user['id'], act.title, act.description, act.activity_type, act.laps,
+                  act.distance, act.date, act.time_start, act.time_end, act.published, act.visibility)
+        db_worker('ins', sql, values)
+        return act
 
-
-@app.get("/users/me/details")
-async def read_own_items(current_user: Annotated[UserModel, Depends(get_current_active_user)]):
-    return [{'username': current_user['username'], 'first name': current_user['first_name'],
-             'last name': current_user['last_name'],}]
+    except Exception as e:
+        return {'error': e}

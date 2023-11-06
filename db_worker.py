@@ -56,9 +56,12 @@ def init_db():
 
         db_worker('init', '''CREATE TABLE IF NOT EXISTS activities(
             "id" INTEGER,
+            "user_id" INTEGER,
             "title" TEXT,
             "description" TEXT,
             "activity_type" TEXT,
+            "laps" INTEGER,
+            "distance" INTEGER,
             "date" REAL,
             "time_start" REAL,
             "time_end" REAL,

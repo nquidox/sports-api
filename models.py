@@ -13,13 +13,15 @@ class UserModel(BaseModel):
 
 
 class ActivityModel(BaseModel):
+    user_id: int
     title: str
     description: str | None = None
     activity_type: str
+    laps: float | None = None
+    distance: float | None = None
     date: float
     time_start: float
     time_end: float
     published: bool = True
     visibility: int
-
 
