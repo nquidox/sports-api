@@ -1,5 +1,5 @@
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, APIRouter
 from typing import Annotated
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
@@ -13,6 +13,8 @@ MINUTES = 60
 SECRET_KEY = '229f99f5f9187b139cfba8bc80cc1bf107d51684eb8bd17571b939b4b465007a'
 ALGORITHM = 'HS256'
 ACCESS_TOKEN_EXPIRE_MINUTES = MINUTES
+
+router = APIRouter()
 
 
 class Token(BaseModel):
@@ -113,3 +115,21 @@ async def get_current_active_user(current_user: Annotated[UserModel, Depends(get
     if current_user['disabled'] != 0:
         raise HTTPException(status_code=400, detail='Inactive User')
     return current_user
+
+
+@router.post('/token', tags=['Token'], response_model=Token)
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    user = authenticate_user(form_data.username, form_data.password)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={'sub': user['username']}, expires_delta=access_token_expires
+    )
+    return {'access_token': access_token, 'token_type': 'bearer'}
