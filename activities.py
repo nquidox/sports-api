@@ -5,7 +5,6 @@ from db_worker import db_worker
 from http_codes import c403
 from models import UserModel, ActivityModel
 
-
 router = APIRouter(tags=['Activities'])
 
 
@@ -31,8 +30,8 @@ async def add_activity_run(user_id: int,
 
 
 @router.get('/{user_id}/activities/{act_id}')
-async def get_activity(user_id: int, act_id: int,
-                       current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+async def get_activity_by_id(user_id: int, act_id: int,
+                             current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
         if user_id == current_user['id'] or current_user['is_superuser'] == 1:
             sql = "SELECT * FROM activities WHERE user_id = ? AND id = ?"
@@ -42,6 +41,29 @@ async def get_activity(user_id: int, act_id: int,
             d = {'id': r[0], 'user_id': r[1], 'title': r[2], 'description': r[3], 'activity_type': r[4],
                  'laps': r[5], 'distance': r[6], 'date': r[7], 'time_start': r[8], 'time_end': r[9],
                  'published': r[10], 'visibility': r[11]}
+            return d
+
+        else:
+            return c403
+
+    except Exception as e:
+        return {'error': e}
+
+
+@router.get('/{user_id}/activities/')
+async def get_activity_by_type(user_id: int, act_type: str,
+                               current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+    try:
+        if user_id == current_user['id'] or current_user['is_superuser'] == 1:
+            sql = "SELECT * FROM activities WHERE user_id = ? AND activity_type = ?"
+            values = (user_id, act_type)
+            rows = db_worker('fa', sql, values)
+            d = []
+            for r in rows:
+                d.append({'id': r[0], 'user_id': r[1], 'title': r[2], 'description': r[3], 'activity_type': r[4],
+                'laps': r[5], 'distance': r[6], 'date': r[7], 'time_start': r[8], 'time_end': r[9],
+                'published': r[10], 'visibility': r[11]})
+
             return d
 
         else:
