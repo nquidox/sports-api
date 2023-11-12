@@ -7,6 +7,7 @@ DB_PATH = os.path.dirname(os.path.abspath(__file__))
 
 def db_worker(op: str, sql: str, values: tuple = None):
     db = sqlite3.connect(database="sports_api.db")
+    db.row_factory = sqlite3.Row
     cursor = db.cursor()
 
     match op:
@@ -16,10 +17,15 @@ def db_worker(op: str, sql: str, values: tuple = None):
             cursor.close()
 
         case 'fo':
-            cursor.execute(sql, values)
-            row = cursor.fetchone()
+            if values is not None:
+                cursor.execute(sql, values)
+
+            elif values is None:
+                cursor.execute(sql)
+
+            result = dict(cursor.fetchone())
             cursor.close()
-            return row
+            return result
 
         case 'fa':
             if values is not None:
@@ -28,9 +34,9 @@ def db_worker(op: str, sql: str, values: tuple = None):
             elif values is None:
                 cursor.execute(sql)
 
-            rows = cursor.fetchall()
+            result = [dict(row) for row in cursor.fetchall()]
             cursor.close()
-            return rows
+            return result
 
         case 'init':
             cursor.execute(sql)
@@ -43,7 +49,7 @@ def init_db():
     if not os.path.exists(os.path.join(DB_PATH, DB_NAME)):
         db_worker('init', '''CREATE TABLE IF NOT EXISTS users(
             "id" INTEGER,
-            "username" TEXT,
+            "username" TEXT UNIQUE,
             "first_name" TEXT,
             "last_name" TEXT,
             "birthday" REAL,

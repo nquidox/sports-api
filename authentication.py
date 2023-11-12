@@ -39,21 +39,10 @@ def get_password_hash(password):
 
 
 def get_user(username):
-    rows = db_worker('fa', 'SELECT username FROM users')
-    users_list = [x[0] for x in rows]
+    users_list = db_worker('fa', 'SELECT username FROM users')
 
-    if username in users_list:
-        from_db = db_worker('fo', 'SELECT * FROM users WHERE username = ?', (username, ))
-        user = {
-            'id': from_db[0],
-            'username': from_db[1],
-            'first_name': from_db[2],
-            'last_name': from_db[3],
-            'birthday': from_db[4],
-            'gender': from_db[5],
-            'disabled': from_db[6],
-            'hashed_password': from_db[7],
-            'is_superuser': from_db[8]}
+    if any(x['username'] == username for x in users_list):
+        user = db_worker('fo', 'SELECT * FROM users WHERE username = ?', (username, ))
         return user
 
 

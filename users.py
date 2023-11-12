@@ -30,8 +30,7 @@ async def get_user(user_id: int, current_user: Annotated[UserModel, Depends(get_
         if user_id == current_user['id'] or current_user['is_superuser'] == 1:
             sql = "SELECT username, first_name, last_name, birthday, gender FROM users WHERE id = ?"
             values = (user_id, )
-            r = db_worker('fo', sql, values)
-            return {'username': r[0], 'first_name': r[1], 'last_name': r[2], 'birthday': r[3], 'gender': r[4]}
+            return db_worker('fo', sql, values)
         else:
             return c403
 

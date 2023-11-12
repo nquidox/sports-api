@@ -36,12 +36,7 @@ async def get_activity_by_id(user_id: int, act_id: int,
         if user_id == current_user['id'] or current_user['is_superuser'] == 1:
             sql = "SELECT * FROM activities WHERE user_id = ? AND id = ?"
             values = (user_id, act_id)
-            r = db_worker('fo', sql, values)
-            # refactor this with 'out' model, also add return of all activities
-            d = {'id': r[0], 'user_id': r[1], 'title': r[2], 'description': r[3], 'activity_type': r[4],
-                 'laps': r[5], 'distance': r[6], 'date': r[7], 'time_start': r[8], 'time_end': r[9],
-                 'published': r[10], 'visibility': r[11]}
-            return d
+            return db_worker('fo', sql, values)
 
         else:
             return c403
@@ -57,14 +52,7 @@ async def get_activity_by_type(user_id: int, act_type: str,
         if user_id == current_user['id'] or current_user['is_superuser'] == 1:
             sql = "SELECT * FROM activities WHERE user_id = ? AND activity_type = ?"
             values = (user_id, act_type)
-            rows = db_worker('fa', sql, values)
-            d = []
-            for r in rows:
-                d.append({'id': r[0], 'user_id': r[1], 'title': r[2], 'description': r[3], 'activity_type': r[4],
-                'laps': r[5], 'distance': r[6], 'date': r[7], 'time_start': r[8], 'time_end': r[9],
-                'published': r[10], 'visibility': r[11]})
-
-            return d
+            return db_worker('fa', sql, values)
 
         else:
             return c403
