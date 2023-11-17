@@ -9,3 +9,6 @@ Sport activities backend app built on Fastapi framework.
 * Same as above for activities
 * JWT Auth
 * Simple permissons system
+
+## Important notes
+CORS set to allow everything, it made on purpose for development. You must change it on prod.
