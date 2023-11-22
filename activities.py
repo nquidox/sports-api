@@ -45,13 +45,15 @@ async def get_activity_by_id(user_id: int, act_id: int,
         return {'error': e}
 
 
-@router.get('/{user_id}/activities/')
-async def get_activity_by_type(user_id: int, act_type: str,
+@router.get('/{username}/activities/{act_type}/')
+async def get_activity_by_type(username: str, act_type: str,
                                current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
-        if user_id == current_user['id'] or current_user['is_superuser'] == 1:
-            sql = "SELECT * FROM activities WHERE user_id = ? AND activity_type = ?"
-            values = (user_id, act_type)
+        if username == current_user['username'] or current_user['is_superuser'] == 1:
+            sql = '''SELECT user_id, username, title, description, activity_type,laps, distance, date,
+            time_start, time_end, published, visibility FROM users JOIN activities ON user_id
+            WHERE users.id = ? AND activity_type = ?'''
+            values = (current_user['id'], act_type)
             return db_worker('fa', sql, values)
 
         else:
