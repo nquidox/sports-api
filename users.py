@@ -1,7 +1,5 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter
-from pydantic import StrictStr
-
 from authentication import get_password_hash, get_current_active_user
 from db_worker import db_worker
 from http_codes import c403
@@ -41,7 +39,7 @@ async def get_user_by_id(user_id: int, current_user: Annotated[UserModel, Depend
 
 
 @router.get('/{username}/')
-async def get_user_by_username(username: StrictStr, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+async def get_user_by_username(username: str, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
         if username == current_user['username'] or current_user['is_superuser'] == 1:
             sql = "SELECT username, first_name, last_name, birthday, gender FROM users WHERE username = ?"
