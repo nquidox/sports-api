@@ -52,13 +52,13 @@ async def get_user_by_username(username: str, current_user: Annotated[UserModel,
         return {'error': e}
 
 
-@router.put('/{user_id}')
-async def update_user(user_id: int, user: UserModel,
+@router.put('/{username}/')
+async def update_user(username: str, user: UserModel,
                       current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
-        if user_id == current_user['id'] or current_user['is_superuser'] == 1:
+        if username == current_user['username'] or current_user['is_superuser'] == 1:
             values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.is_superuser,
-                      user_id)
+                      current_user['id'])
             sql = ("UPDATE users SET username = ?, first_name=?, last_name=?, birthday=?, gender=?, is_superuser=?"
                    "WHERE id=?")
             db_worker('upd', sql, values)
@@ -71,12 +71,12 @@ async def update_user(user_id: int, user: UserModel,
         return {'error': e}
 
 
-@router.delete('/{user_id}')
-async def delete_user(user_id: int, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+@router.delete('/{username}/')
+async def delete_user(username: int, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
-        if user_id == current_user['id'] or current_user['is_superuser'] == 1:
+        if username == current_user['username'] or current_user['is_superuser'] == 1:
             sql = "DELETE FROM users WHERE id = ?"
-            values = (user_id, )
+            values = (current_user['id'], )
             db_worker('del', sql, values)
         else:
             return c403
