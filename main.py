@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from db_worker import init_db
@@ -31,3 +33,10 @@ app.include_router(activities.router)
 @app.on_event('startup')
 async def run_on_startup():
     init_db()
+
+
+@app.get('/cookie', tags=['Cookie test'])
+async def get_cookie(response: Response):
+    exp_date = (datetime.utcnow() + timedelta(days=365*3)).astimezone(timezone.utc)
+    response.set_cookie(key='cookie_test', value='some info', httponly=True, secure=False, expires=exp_date)
+    return {'cookie_test': exp_date}
