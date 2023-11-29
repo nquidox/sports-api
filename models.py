@@ -10,6 +10,7 @@ class UserModel(BaseModel):
     disabled: bool = False
     hashed_password: str
     is_superuser: bool = False
+    cookie_secret: str | None = None
 
 
 class ActivityModel(BaseModel):

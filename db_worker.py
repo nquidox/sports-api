@@ -57,6 +57,7 @@ def init_db():
             "disabled" INTEGER,
             "hashed_password" TEXT,
             "is_superuser" INTEGER,
+            "cookie_secret"	TEXT,
             PRIMARY KEY ("id" AUTOINCREMENT)
             )''')
 
