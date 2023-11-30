@@ -8,10 +8,8 @@ Sport activities backend app built on Fastapi framework.
 * Create, read, update and delete users
 * Same as above for activities
 * JWT Auth
+* Cookie Auth
 * Simple permissons system
-
-## WIP:
-Cookie auth and sessions
 
 ## Important notes
 CORS set to allow everything, it made on purpose for development. You must change it on prod.
