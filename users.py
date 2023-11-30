@@ -1,6 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, APIRouter
 from authentication import get_password_hash, get_current_active_user
+from cookie_auth import get_password_hash as gph
 from db_worker import db_worker
 from http_codes import c403
 from models import UserModel
@@ -14,9 +15,9 @@ async def create_user(user: UserModel):
     try:
         hashed_password = get_password_hash(user.hashed_password)
         sql = ("INSERT INTO users (username, first_name, last_name, birthday, gender, disabled, hashed_password,"
-               "is_superuser) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+               "is_superuser, cookie_secret) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
         values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.disabled,
-                  hashed_password, 0)
+                  hashed_password, 0, gph(user.hashed_password))
         db_worker('ins', sql, values)
         return user
 
@@ -72,7 +73,7 @@ async def update_user(username: str, user: UserModel,
 
 
 @router.delete('/{username}/')
-async def delete_user(username: int, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
+async def delete_user(username: str, current_user: Annotated[UserModel, Depends(get_current_active_user)]):
     try:
         if username == current_user['username'] or current_user['is_superuser'] == 1:
             sql = "DELETE FROM users WHERE id = ?"

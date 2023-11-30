@@ -76,3 +76,12 @@ def init_db():
             "visibility" INTEGER,
             PRIMARY KEY ("id" AUTOINCREMENT)
         )''')
+
+        db_worker('init', '''CREATE TABLE IF NOT EXISTS sessions(
+            "id" INTEGER,
+            "user_id" INTEGER,
+            "token"	TEXT,
+            "client_info" TEXT,
+            "expires" INTEGER,
+            PRIMARY KEY("id" AUTOINCREMENT)
+        )''')

@@ -1,29 +1,88 @@
 from typing import Annotated
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.routing import APIRouter
-from fastapi import Response, Depends
+from fastapi import Request, Response, Depends, HTTPException, status, Cookie
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 
-from authentication import get_current_user
 from db_worker import db_worker
 from models import UserModel
 
 router = APIRouter(tags=['Cookie authentication'])
 
 
-@router.get('/cookie')
-async def get_cookie(response: Response, current_user: Annotated[UserModel, Depends(get_current_user)]):
-    sql = "SELECT * FROM users WHERE username = ?"
-    values = (current_user['username'], )
-    result = db_worker('fo', sql, values)
+def create_session(user_data: dict, request: Request, response: Response):
+    exp_date = (datetime.utcnow() + timedelta(days=365 * 3)).astimezone(timezone.utc)
 
-    if not result['cookie_secret']:
-        generate_secret = sha256((str(result['id']) + result['username']).encode('utf-8')).hexdigest()
+    token = sha256((str(user_data['id']) + user_data['username'] + str(exp_date)).encode('utf-8')).hexdigest()
 
-        sql = "UPDATE users SET cookie_secret=? WHERE username=?"
-        values = (generate_secret, current_user['username'])
-        db_worker('upd', sql, values)
+    sql = "INSERT INTO sessions (user_id, token, client_info, expires) VALUES (?, ?, ?, ?)"
+    values = (user_data['id'], token, request.headers['User-Agent'], str(exp_date))
+    db_worker('ins', sql, values)
 
-        exp_date = (datetime.utcnow() + timedelta(days=365*3)).astimezone(timezone.utc)
-        response.set_cookie(key='token', value=generate_secret, httponly=True, secure=False, expires=exp_date)
-        return {'cookie_test': exp_date}
+    response.set_cookie(key='token', value=token, httponly=True, secure=False, expires=exp_date)
+
+
+def get_password_hash(plain_password):
+    return sha256(str(plain_password).encode('utf-8')).hexdigest()
+
+
+def get_user(username: str):
+    return db_worker('fo', "SELECT * FROM users WHERE username = ?", (username, ))
+
+
+def verify_password(plain_password, hashed_password):
+    return get_password_hash(plain_password) == hashed_password
+
+
+def authenticate_user(username, password):
+    user = get_user(username)
+
+    if not user:
+        return False
+
+    if not verify_password(password, user['cookie_secret']):
+        return False
+
+    return user
+
+
+async def get_current_user(token: Annotated[str | None, Cookie()] = None):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Could not validate credentials'
+    )
+
+    sql = "SELECT username FROM users JOIN sessions ON users.id = sessions.user_id WHERE token = ?"
+    values = (token, )
+    user_data = db_worker('fo', sql, values)
+
+    if not user_data:
+        raise credentials_exception
+
+    user = get_user(user_data['username'])
+
+    if user is None:
+        raise credentials_exception
+
+    return user
+
+
+async def get_current_active_user(current_user: Annotated[UserModel, Depends(get_current_user)]):
+    if current_user['disabled'] != 0:
+        raise HTTPException(status_code=400, detail='Inactive User')
+    return current_user
+
+
+@router.post('/login')
+async def cookie_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+                       request: Request, response: Response):
+    user = authenticate_user(form_data.username, form_data.password)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect username or password',
+        )
+
+    create_session(get_user(form_data.username), request, response)
