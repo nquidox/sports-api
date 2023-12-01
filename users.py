@@ -2,6 +2,7 @@ from typing import Annotated
 from fastapi import Depends, APIRouter
 from authentication import get_password_hash, get_current_active_user
 from cookie_auth import get_password_hash as gph
+from cookie_auth import get_password_salt as gps
 from db_worker import db_worker
 from http_codes import c403
 from models import UserModel
@@ -13,11 +14,12 @@ router = APIRouter(prefix='/user', tags=['Users'])
 @router.post('/')
 async def create_user(user: UserModel):
     try:
+        salt = gps()
         hashed_password = get_password_hash(user.hashed_password)
         sql = ("INSERT INTO users (username, first_name, last_name, birthday, gender, disabled, hashed_password,"
-               "is_superuser, cookie_secret) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+               "is_superuser, cookie_secret, salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
         values = (user.username, user.first_name, user.last_name, user.birthday, user.gender, user.disabled,
-                  hashed_password, 0, gph(user.hashed_password))
+                  hashed_password, 0, gph(user.hashed_password, salt), salt)
         db_worker('ins', sql, values)
         return user
 

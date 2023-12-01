@@ -58,6 +58,7 @@ def init_db():
             "hashed_password" TEXT,
             "is_superuser" INTEGER,
             "cookie_secret"	TEXT,
+            "salt" TEXT,
             PRIMARY KEY ("id" AUTOINCREMENT)
             )''')
 

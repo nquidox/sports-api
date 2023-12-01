@@ -1,3 +1,5 @@
+import random
+import string
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.routing import APIRouter
@@ -23,25 +25,29 @@ def create_session(user_data: dict, request: Request, response: Response):
     response.set_cookie(key='token', value=token, httponly=True, secure=False, expires=exp_date)
 
 
-def get_password_hash(plain_password):
-    return sha256(str(plain_password).encode('utf-8')).hexdigest()
+def get_password_hash(plain_password, salt):
+    return sha256((str(plain_password + salt)).encode('utf-8')).hexdigest()
+
+
+def get_password_salt():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 
 def get_user(username: str):
     return db_worker('fo', "SELECT * FROM users WHERE username = ?", (username, ))
 
 
-def verify_password(plain_password, hashed_password):
-    return get_password_hash(plain_password) == hashed_password
+def verify_password(plain_password: str, hashed_password: str, salt: str):
+    return get_password_hash(plain_password, salt) == hashed_password
 
 
-def authenticate_user(username, password):
+def authenticate_user(username: str, password: str):
     user = get_user(username)
 
     if not user:
         return False
 
-    if not verify_password(password, user['cookie_secret']):
+    if not verify_password(password, user['cookie_secret'], user['salt']):
         return False
 
     return user
