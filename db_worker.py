@@ -23,9 +23,13 @@ def db_worker(op: str, sql: str, values: tuple = None):
             elif values is None:
                 cursor.execute(sql)
 
-            result = dict(cursor.fetchone())
+            result = cursor.fetchone()
+
+            if result:
+                return dict(result)
+
             cursor.close()
-            return result
+            return None
 
         case 'fa':
             if values is not None:
@@ -34,9 +38,13 @@ def db_worker(op: str, sql: str, values: tuple = None):
             elif values is None:
                 cursor.execute(sql)
 
-            result = [dict(row) for row in cursor.fetchall()]
+            result = cursor.fetchall()
+
+            if result:
+                return [dict(row) for row in result]
+
             cursor.close()
-            return result
+            return None
 
         case 'init':
             cursor.execute(sql)
